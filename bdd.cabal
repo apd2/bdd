@@ -15,6 +15,6 @@ build-type:          Simple
 cabal-version:       >=1.8
 
 library
-  exposed-modules:     TypeFamily, LogicClasses, Implicit
+  exposed-modules:   LogicClasses, Implicit
   -- other-modules:       
-  build-depends:       base ==4.5.*, cudd-haskell ==0.1.*, mtl ==2.1.*, util ==0.1.*
+  build-depends:       base ==4.5.*, mtl ==2.1.*, util ==0.1.*
