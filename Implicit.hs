@@ -5,11 +5,11 @@ import Data.Bits
 
 import qualified LogicClasses as C
 
-t, b :: (C.BOp c v a, ?m :: c) => a
+t, b :: (C.Boolean c a, ?m :: c) => a
 t = C.topOp ?m
 b = C.botOp ?m
 
-(.|), (.&), (.->), xnor, xor, or, and, imp :: (C.BOp c v a, ?m :: c) => a -> a -> a
+(.|), (.&), (.->), xnor, xor, or, and, imp :: (C.Boolean c a, ?m :: c) => a -> a -> a
 (.|)  = C.orOp ?m
 (.&)  = C.andOp ?m
 (.->) = C.impOp ?m
@@ -26,14 +26,14 @@ infixr 1 .->
 (<.>) = ($)
 infix 2 <.>
 
-nt :: (C.BOp c v a, ?m :: c) => a -> a
+nt :: (C.Boolean c a, ?m :: c) => a -> a
 nt = C.notOp ?m
 
-exists, forall :: (C.BOp c v a, ?m :: c) => v -> a -> a
+exists, forall :: (C.QBF c v a, ?m :: c) => v -> a -> a
 exists vs x = C.exists ?m vs x 
 forall vs x = C.forall ?m vs x
 
-conj, disj :: (C.BOp c v a, ?m :: c) => [a] -> a
+conj, disj :: (C.Boolean c a, ?m :: c) => [a] -> a
 conj = C.conjOp ?m
 disj = C.disjOp ?m
 
@@ -84,7 +84,7 @@ vzero = C.vzero ?m
 vconcat :: (C.Variable c v, ?m :: c) => [v] -> v
 vconcat = C.vconcat ?m
 
-cube :: (C.BOp c v a, ?m :: c) => [a] -> [Bool] -> a
+cube :: (C.Boolean c a, ?m :: c) => [a] -> [Bool] -> a
 cube = C.cube ?m
 
 eqConst :: (Bits b, C.EqConst c v a, ?m :: c) => v -> b -> a
