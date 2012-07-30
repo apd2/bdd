@@ -32,14 +32,24 @@ class Variable c v | c -> v where
     vconcat :: c -> [v] -> v
 
 --Operations
+--Have to have stupid names because of clashes with prelude names
 class Boolean c a | c -> a where
-    iteOp                             :: c -> a -> a -> a -> a
-    xnorOp, andOp, orOp, xorOp, impOp :: c -> a -> a -> a
-    notOp                             :: c -> a -> a
-    topOp, botOp                      :: c -> a
-    conjOp, disjOp                    :: c -> [a] -> a
-    conjOp d xs = foldl (andOp d) (topOp d) xs
-    disjOp d xs = foldl (orOp d)  (botOp d) xs
+    iteOp                                            :: c -> a -> a -> a -> a
+    andOp, orOp, xorOp, xnorOp, impOp, nandOp, norOp :: c -> a -> a -> a
+    nandOp c x y                                     = notOp c $ andOp c x y
+    norOp c x y                                      = notOp c $ orOp c x y
+    xnorOp c x y                                     = notOp c $ xorOp c x y
+    impOp c x y                                      = orOp c (notOp c x) y
+    orOp c x y                                       = notOp c $ andOp c (notOp c x) (notOp c y)
+    andOp c x y                                      = notOp c $ orOp c (notOp c x) (notOp c y)
+    xorOp c x y                                      = andOp c (orOp c x y) (notOp c (andOp c x y))
+    notOp                                            :: c -> a -> a
+    topOp, botOp                                     :: c -> a
+    topOp c                                          = notOp c (botOp c)
+    botOp c                                          = notOp c (topOp c)
+    conjOp, disjOp                                   :: c -> [a] -> a
+    conjOp d xs                                      = foldl (andOp d) (topOp d) xs
+    disjOp d xs                                      = foldl (orOp d) (botOp d) xs
 
 cube :: (Boolean c a) => c -> [a] -> [Bool] -> a
 cube m nodes phase = conjOp m $ zipWith (alt id (notOp m)) phase nodes
