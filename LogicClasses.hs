@@ -100,13 +100,12 @@ class EqConst c v a where
 	eqConstBE :: (Bits b) => c -> v -> b -> a
 	eqConst   :: (Bits b) => c -> v -> b -> a
 
-eqVars :: (BoolOp c v a) => c -> v -> v -> a
-eqVars c l r = conjOp c $ zipWith (xnorOp c) (compVar c l) (compVar c r)
-
 --It makes more sense to have compVar return another abstract type that represents compiled vars and use these in the compiler and for EqConst
 class QBF c v a => BoolOp c v a | c -> a, c -> v where
     compVar :: c -> v -> [a]
-    varCube :: c -> v -> a
+
+eqVars :: (BoolOp c v a) => c -> v -> v -> a
+eqVars c l r = conjOp c $ zipWith (xnorOp c) (compVar c l) (compVar c r)
 
 class (Variable c v, Shiftable c v a, QBF c v a, Eq a, BoolOp c v a, EqConst c v a) => AllOps c v a
 class (AllOps c v a, Satisfiable c v a s r) => AllAndSat c v a s r

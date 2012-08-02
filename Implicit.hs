@@ -99,9 +99,6 @@ eqConstLE = C.eqConstLE ?m
 eqVars :: (C.BoolOp c v a, ?m :: c) => v -> v -> a
 eqVars = C.eqVars ?m
 
-varCube :: (C.BoolOp c v a, ?m :: c) => v -> a
-varCube = C.varCube ?m
-
 compVar :: (C.BoolOp c v a, ?m :: c) => v -> [a]
 compVar = C.compVar ?m
 
