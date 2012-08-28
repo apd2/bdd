@@ -55,7 +55,7 @@ cube :: (Boolean c a) => c -> [a] -> [Bool] -> a
 cube m nodes phase = conjOp m $ zipWith (alt id (notOp m)) phase nodes
 
 class Boolean c a => QBF c v a | c -> v, c -> a where
-    exists, forall                    :: c -> v -> a -> a
+    exists, forall :: c -> v -> a -> a
 
 --Renaming
 class Shiftable c v a | c -> v, c -> a where
