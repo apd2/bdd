@@ -16,7 +16,8 @@ module LogicClasses (
     EqConst(..),
     eqVars,
     BoolOp(..),
-    CUDDLike(..)
+    CUDDLike(..),
+    VarDecl(..)
     ) where
 
 import Control.Monad.Error
@@ -27,8 +28,8 @@ import Util
 
 --Variables
 class Variable c v | c -> v where
-    vzero :: c -> v
-    vplus :: c -> v -> v -> v
+    vzero   :: c -> v
+    vplus   :: c -> v -> v -> v
     vconcat :: c -> [v] -> v
 
 --Operations
@@ -107,7 +108,10 @@ class QBF c v a => BoolOp c v a | c -> a, c -> v where
 eqVars :: (BoolOp c v a) => c -> v -> v -> a
 eqVars c l r = conjOp c $ zipWith (xnorOp c) (compVar c l) (compVar c r)
 
-class (Variable c v, Shiftable c v a, QBF c v a, Eq a, BoolOp c v a, EqConst c v a) => AllOps c v a
+class VarDecl c v where
+    varAtIndex :: c -> Int -> v
+
+class (Variable c v, Shiftable c v a, QBF c v a, Eq a, BoolOp c v a, EqConst c v a, VarDecl c v) => AllOps c v a
 class (AllOps c v a, Satisfiable c v a s r) => AllAndSat c v a s r
 
 --Stuff specific to BDD libraries
