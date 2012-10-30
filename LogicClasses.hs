@@ -111,8 +111,9 @@ eqVars c l r = conjOp c $ zipWith (xnorOp c) (compVar c l) (compVar c r)
 class VarDecl c v where
     varAtIndex :: c -> Int -> v
 
-class (Variable c v, Shiftable c v a, QBF c v a, Eq a, BoolOp c v a, EqConst c v a, VarDecl c v) => AllOps c v a
+class (Variable c v, Shiftable c v a, QBF c v a, Eq a, BoolOp c v a, EqConst c v a) => AllOps c v a
 class (AllOps c v a, Satisfiable c v a s r) => AllAndSat c v a s r
+class (AllOps c v a, VarDecl c v) => AllAndDecl c v a
 
 --Stuff specific to BDD libraries
 class AllOps c v a => CUDDLike c v a where
