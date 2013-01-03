@@ -131,6 +131,10 @@ class AllOps c v a => CUDDLike c v a where
 
     supportIndices :: c -> a -> [Int]
 
+    project :: (VarDecl c v) => c -> [Int] -> a -> a
+    project m ids x = exists m v x
+        where v = vconcat m $ map (varAtIndex m) $ filter (\i -> not $ elem i ids) $ supportIndices m x
+
     primeImplicant :: c -> a -> a
     primeImplicant m x = makePrime m (largestCube m x) x
 

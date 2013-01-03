@@ -33,6 +33,9 @@ exists, forall :: (C.QBF c v a, ?m :: c) => v -> a -> a
 exists vs x = C.exists ?m vs x 
 forall vs x = C.forall ?m vs x
 
+varAtIndex :: (C.VarDecl c v, ?m :: c) => Int -> v
+varAtIndex = C.varAtIndex ?m
+
 conj, disj :: (C.Boolean c a, ?m :: c) => [a] -> a
 conj = C.conjOp ?m
 disj = C.disjOp ?m
@@ -119,6 +122,9 @@ makePrime = C.makePrime ?m
 
 supportIndices :: (C.CUDDLike c v a, ?m :: c) => a -> [Int]
 supportIndices = C.supportIndices ?m
+
+project :: (C.CUDDLike c v a, C.VarDecl c v, ?m :: c) => [Int] -> a -> a
+project  = C.project ?m
 
 primeImplicant :: (C.CUDDLike c v a, ?m :: c) => a -> a
 primeImplicant = C.primeImplicant ?m
