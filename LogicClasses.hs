@@ -51,6 +51,7 @@ class Boolean c a | c -> a where
     conjOp, disjOp                                   :: c -> [a] -> a
     conjOp d xs                                      = foldl (andOp d) (topOp d) xs
     disjOp d xs                                      = foldl (orOp d) (botOp d) xs
+    eqOp                                             :: c -> a -> a -> Bool
 
 cube :: (Boolean c a) => c -> [a] -> [Bool] -> a
 cube m nodes phase = conjOp m $ zipWith (alt id (notOp m)) phase nodes
@@ -111,7 +112,7 @@ eqVars c l r = conjOp c $ zipWith (xnorOp c) (compVar c l) (compVar c r)
 class VarDecl c v where
     varAtIndex :: c -> Int -> v
 
-class (Variable c v, Shiftable c v a, QBF c v a, Eq a, BoolOp c v a, EqConst c v a) => AllOps c v a
+class (Variable c v, Shiftable c v a, QBF c v a, BoolOp c v a, EqConst c v a) => AllOps c v a
 class (AllOps c v a, Satisfiable c v a s r) => AllAndSat c v a s r
 class (AllOps c v a, VarDecl c v) => AllAndDecl c v a
 
@@ -142,14 +143,14 @@ class AllOps c v a => CUDDLike c v a where
     primeCover m y = unfoldr func y
         where
         func x 
-            | x == botOp m = Nothing
+            | eqOp m x (botOp m) = Nothing
             | otherwise = Just (ret, st)
                 where
                 ret = makePrime m (largestCube m x) y
                 st  = andOp m (notOp m ret) x
 
     leq :: c -> a -> a -> Bool
-    leq m l r = (impOp m l r) == topOp m
+    leq m l r = eqOp m (impOp m l r) (topOp m)
 
     intersects :: c -> a -> a -> Bool
     intersects m l r = not $ leq m l (notOp m r)

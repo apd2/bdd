@@ -19,6 +19,10 @@ and   = C.andOp ?m
 or    = C.orOp ?m
 imp   = C.impOp ?m
 
+(.==), (./=) :: (C.Boolean c a, ?m :: c) => a -> a -> Bool
+(.==) = C.eqOp ?m
+(./=) x y = not $ C.eqOp ?m x y
+
 infixl 6 .&
 infixl 5 .|
 infixr 1 .-> 
