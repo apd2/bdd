@@ -31,6 +31,7 @@ class Variable c v | c -> v where
     vzero   :: c -> v
     vplus   :: c -> v -> v -> v
     vconcat :: c -> [v] -> v
+    vminus  :: c -> v -> v -> v
 
 --Operations
 --Have to have stupid names because of clashes with prelude names

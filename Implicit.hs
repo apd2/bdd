@@ -85,6 +85,9 @@ oneSatAndCube = C.oneSatAndCube ?m
 vplus :: (C.Variable c v, ?m :: c) => v -> v -> v
 vplus = C.vplus ?m
 
+vminus :: (C.Variable c v, ?m :: c) => v -> v -> v
+vminus = C.vminus ?m
+
 vzero :: (C.Variable c v, ?m :: c) => v 
 vzero = C.vzero ?m
 
