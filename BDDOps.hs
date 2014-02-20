@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, TypeSynonymInstances, FlexibleContexts #-}
 
 module BDDOps (
     VarData,
@@ -12,8 +12,14 @@ import qualified Data.IntSet as IntSet
 import Data.List
 import Control.Monad
 
+import System.IO.Unsafe
+import Control.Monad.Error
+import Data.Maybe
+import System.Directory
+
 import LogicClasses
 import Cudd
+import CuddFile
 import Util
 import BDDCommon
 
@@ -112,4 +118,27 @@ indicesToVarData :: DdManager -> [Int] -> VarData
 indicesToVarData m inds = VarData vars inds (conjOp m vars) (sort inds)
     where
     vars = map (cuddBddIthVar m) inds
+
+-- BDD from string via file
+bddFromString :: MonadError String me => DdManager -> String -> me DdNode
+bddFromString m str = unsafePerformIO $ 
+    catchError (do let fname = "_fromString.bdd"
+                   writeFile fname str
+                   node <- cuddBddLoad m DddmpVarMatchauxids [] [] DddmpModeText fname
+                   removeFile fname
+                   return $ return $ fromJust node)
+               (return . throwError . show)
+
+-- Extremely ugly and unsafe way to convert BDD to String via file
+bddToString :: (MonadError String me) => DdManager -> DdNode -> me String
+bddToString m node = unsafePerformIO $ 
+    catchError (do let fname = show (ddNodeToInt node) ++ ".bdd"
+                   ret <- cuddBddStore m fname node [] DddmpModeText DddmpVarids fname
+                   --putStrLn $ "ret = " ++ (show ret)
+                   if ret == True
+                           then do str <- readFile fname
+                                   removeFile fname
+                                   return $ return str
+                           else return $ throwError $ "Failed to serialise BDD (status: " ++ show ret ++ ")")
+               (return . throwError . show)
 
