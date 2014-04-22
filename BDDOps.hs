@@ -18,8 +18,8 @@ import Data.Maybe
 import System.Directory
 
 import LogicClasses
-import Cudd
-import CuddFile
+import Cudd.Cudd
+import Cudd.File
 import Util
 import BDDCommon
 
