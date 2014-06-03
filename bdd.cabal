@@ -15,6 +15,6 @@ build-type:          Simple
 cabal-version:       >=1.8
 
 library
-  exposed-modules:   LogicClasses, Implicit
+  exposed-modules:   LogicClasses, Implicit, BDDOps, BDDCommon
   -- other-modules:       
-  build-depends:       base ==4.7.*, mtl ==2.*, util ==0.1.*
+  build-depends:       base >=4.6 && <4.8, mtl ==2.*, util ==0.1.*, haskell-cudd, directory, containers >=0.5, array >=0.4, deepseq >=1.3
