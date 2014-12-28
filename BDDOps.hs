@@ -32,7 +32,7 @@ instance Boolean DdManager DdNode where
     xorOp         = C.bXor
     andOp         = C.bAnd
     orOp          = C.bOr
-    impOp         = C.bImp
+    impOp m l r   = C.bOr m (C.bNot m l) r
     notOp         = C.bNot
     topOp         = C.readOne
     botOp         = C.readLogicZero
