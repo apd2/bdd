@@ -18,7 +18,8 @@ import Data.Maybe
 import System.Directory
 
 import LogicClasses
-import Cudd.Cudd
+import qualified Cudd.Cudd as C
+import Cudd.Cudd (DdNode, DdManager, SatBit(..))
 import Cudd.File
 import Util
 import BDDCommon
@@ -26,20 +27,20 @@ import BDDCommon
 type VarData = VarDataG DdNode
 
 instance Boolean DdManager DdNode where
-	iteOp         = cuddBddIte
-	xnorOp        = cuddBddXnor
-	xorOp         = cuddBddXor
-	andOp         = cuddBddAnd
-	orOp          = cuddBddOr
-	impOp         = cuddBddImp
-	notOp         = cuddNot
-	topOp         = cuddReadOne
-	botOp         = cuddReadLogicZero
-        eqOp _        = (==)
+    iteOp         = C.bIte
+    xnorOp        = C.bXnor
+    xorOp         = C.bXor
+    andOp         = C.bAnd
+    orOp          = C.bOr
+    impOp         = C.bImp
+    notOp         = C.bNot
+    topOp         = C.readOne
+    botOp         = C.readLogicZero
+    eqOp _        = (==)
 
 instance QBF DdManager VarData DdNode where
-	exists m vs n = cuddBddExistAbstract m n (varsCube vs)
-	forall m vs n = cuddBddUnivAbstract  m n (varsCube vs)
+	exists m vs n = C.bExists m n (varsCube vs)
+	forall m vs n = C.bForall  m n (varsCube vs)
 
 instance AllOps DdManager VarData DdNode
     
@@ -53,8 +54,8 @@ instance Variable DdManager VarData where
     vconcat m list = foldl (vplus m) (vzero m) list
 
 instance Shiftable DdManager VarData DdNode where
-    shift m sz vl vr n = cuddBddPermute m n (makePermutArray sz (indices vl) (indices vr))
-    swap  m vl vr n = cuddBddSwapVariables m n (variables vl) (variables vr)
+    shift m sz vl vr n = C.permute m n (makePermutArray sz (indices vl) (indices vr))
+    swap  m vl vr n = C.swapVariables m n (variables vl) (variables vr)
 
 --Converts the result of calling sat on CUDD to a satisfying list of bools where dont care conditions
 --are expanded out
@@ -76,13 +77,13 @@ expandSat vars sat = transpose $ map funcy vars
     funcy vs = transpose $ indexes (map ((IntMap.!) revMap) vs) trans
 
 instance Satisfiable DdManager VarData DdNode [[SatBit]] [Bool] where
-    sat           = cuddAllSat
-    satOne m a    = map (==One) `fmap` cuddOneSat m a 
+    sat           = C.allSat
+    satOne m a    = map (==One) `fmap` C.oneSat m a 
     extract m v   = indexes (sortedInds v) 
     expand m v    = expandSat (map indices v)
     expandOne m v = comb . map (indexes $ sortedInds v)
     oneSat m v n  = do
-        res <- cuddOneSat m n
+        res <- C.oneSat m n
         let x = map (==One) res
         return $ indexesDef False (sortedInds v) x
 
@@ -103,13 +104,13 @@ instance EqConst DdManager VarData DdNode where
 	eqConst = eqConstBE
 
 instance CUDDLike DdManager VarData DdNode where
-    andAbs m vd x y    = cuddBddAndAbstract m x y (varsCube vd)
-    xorAbs m vd x y    = cuddBddXorExistAbstract m x y (varsCube vd)
-    liCompaction       = cuddBddLICompaction
-    largestCube        = snd .* cuddLargestCube
-    makePrime          = cuddBddMakePrime
-    supportIndices m n = map snd $ filter fst $ zip (cuddSupportIndex m n) [0..]
-    leq                = cuddBddLeq 
+    andAbs m vd x y    = C.andAbstract m x y (varsCube vd)
+    xorAbs m vd x y    = C.xorExistAbstract m x y (varsCube vd)
+    liCompaction       = C.liCompaction
+    largestCube        = snd .* C.largestCube
+    makePrime          = C.makePrime
+    supportIndices m n = map snd $ filter fst $ zip (C.supportIndex m n) [0..]
+    leq                = C.lEq 
 
 instance VarDecl DdManager VarData where
     varAtIndex m i = indicesToVarData m [i] 
@@ -117,7 +118,7 @@ instance VarDecl DdManager VarData where
 indicesToVarData :: DdManager -> [Int] -> VarData 
 indicesToVarData m inds = VarData vars inds (conjOp m vars) (sort inds)
     where
-    vars = map (cuddBddIthVar m) inds
+    vars = map (C.ithVar m) inds
 
 -- BDD from string via file
 bddFromString :: MonadError String me => DdManager -> String -> me DdNode
@@ -132,7 +133,7 @@ bddFromString m str = unsafePerformIO $
 -- Extremely ugly and unsafe way to convert BDD to String via file
 bddToString :: (MonadError String me) => DdManager -> DdNode -> me String
 bddToString m node = unsafePerformIO $ 
-    catchError (do let fname = show (ddNodeToInt node) ++ ".bdd"
+    catchError (do let fname = show (C.ddNodeToInt node) ++ ".bdd"
                    ret <- cuddBddStore m fname node [] DddmpModeText DddmpVarids fname
                    --putStrLn $ "ret = " ++ (show ret)
                    if ret == True
