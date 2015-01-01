@@ -19,14 +19,14 @@ import System.Directory
 
 import LogicClasses
 import qualified Cudd.Cudd as C
-import Cudd.Cudd (DdNode, DdManager, SatBit(..))
+import Cudd.Cudd (DDNode, DDManager, SatBit(..))
 import Cudd.File
 import Util
 import BDDCommon
 
-type VarData = VarDataG DdNode
+type VarData = VarDataG DDNode
 
-instance Boolean DdManager DdNode where
+instance Boolean DDManager DDNode where
     iteOp         = C.bIte
     xnorOp        = C.bXnor
     xorOp         = C.bXor
@@ -38,22 +38,22 @@ instance Boolean DdManager DdNode where
     botOp         = C.readLogicZero
     eqOp _        = (==)
 
-instance QBF DdManager VarData DdNode where
+instance QBF DDManager VarData DDNode where
 	exists m vs n = C.bExists m n (varsCube vs)
 	forall m vs n = C.bForall  m n (varsCube vs)
 
-instance AllOps DdManager VarData DdNode
+instance AllOps DDManager VarData DDNode
     
-instance BoolOp DdManager VarData DdNode where
+instance BoolOp DDManager VarData DDNode where
     compVar m    = variables
 
-instance Variable DdManager VarData where
+instance Variable DDManager VarData where
     vplus m (VarData vl il cl sil) (VarData vr ir cr sir) = VarData (vl++vr) (il ++ ir) (andOp m cl cr) (merge (<) sil sir)
     vminus m (VarData vl il cl sil) v@(VarData vr ir cr sir) = VarData undefined undefined (exists m v cl) undefined
     vzero m = VarData [] [] (topOp m) []
     vconcat m list = foldl (vplus m) (vzero m) list
 
-instance Shiftable DdManager VarData DdNode where
+instance Shiftable DDManager VarData DDNode where
     shift m sz vl vr n = C.permute m n (makePermutArray sz (indices vl) (indices vr))
     swap  m vl vr n = C.swapVariables m n (variables vl) (variables vr)
 
@@ -76,7 +76,7 @@ expandSat vars sat = transpose $ map funcy vars
     trans    = transpose sats
     funcy vs = transpose $ indexes (map ((IntMap.!) revMap) vs) trans
 
-instance Satisfiable DdManager VarData DdNode [[SatBit]] [Bool] where
+instance Satisfiable DDManager VarData DDNode [[SatBit]] [Bool] where
     sat           = C.allSat
     satOne m a    = map (==One) `fmap` C.oneSat m a 
     extract m v   = indexes (sortedInds v) 
@@ -87,23 +87,23 @@ instance Satisfiable DdManager VarData DdNode [[SatBit]] [Bool] where
         let x = map (==One) res
         return $ indexesDef False (sortedInds v) x
 
-instance EqRaw DdManager VarData DdNode [Bool] where
+instance EqRaw DDManager VarData DDNode [Bool] where
     eqRaw m v r = LogicClasses.cube m (variables v) r
 
-instance Serialisable DdManager DdNode where
+instance Serialisable DDManager DDNode where
     toStr = bddToString
     fromStr = bddFromString
 
-instance Cubeable DdManager VarData DdNode where
+instance Cubeable DDManager VarData DDNode where
 	oneCube c v a = cube c (compVar c v) `liftM` oneSat c v a 
 	allCubes m vd = map (cube m $ compVar m vd) . expandOne m vd . sat m
 
-instance EqConst DdManager VarData DdNode where
+instance EqConst DDManager VarData DDNode where
 	eqConstLE m vars e = cube m (variables vars) (bitsToBoolArrLe e)
 	eqConstBE m vars e = cube m (variables vars) (bitsToBoolArrBe (length $ variables vars) e)
 	eqConst = eqConstBE
 
-instance CUDDLike DdManager VarData DdNode where
+instance CUDDLike DDManager VarData DDNode where
     andAbs m vd x y    = C.andAbstract m x y (varsCube vd)
     xorAbs m vd x y    = C.xorExistAbstract m x y (varsCube vd)
     liCompaction       = C.liCompaction
@@ -112,16 +112,16 @@ instance CUDDLike DdManager VarData DdNode where
     supportIndices m n = map snd $ filter fst $ zip (C.supportIndex m n) [0..]
     leq                = C.lEq 
 
-instance VarDecl DdManager VarData where
+instance VarDecl DDManager VarData where
     varAtIndex m i = indicesToVarData m [i] 
 
-indicesToVarData :: DdManager -> [Int] -> VarData 
+indicesToVarData :: DDManager -> [Int] -> VarData 
 indicesToVarData m inds = VarData vars inds (conjOp m vars) (sort inds)
     where
     vars = map (C.ithVar m) inds
 
 -- BDD from string via file
-bddFromString :: MonadError String me => DdManager -> String -> me DdNode
+bddFromString :: MonadError String me => DDManager -> String -> me DDNode
 bddFromString m str = unsafePerformIO $ 
     catchError (do let fname = "_fromString.bdd"
                    writeFile fname str
@@ -131,7 +131,7 @@ bddFromString m str = unsafePerformIO $
                (return . throwError . show)
 
 -- Extremely ugly and unsafe way to convert BDD to String via file
-bddToString :: (MonadError String me) => DdManager -> DdNode -> me String
+bddToString :: (MonadError String me) => DDManager -> DDNode -> me String
 bddToString m node = unsafePerformIO $ 
     catchError (do let fname = show (C.ddNodeToInt node) ++ ".bdd"
                    ret <- cuddBddStore m fname node [] DddmpModeText DddmpVarids fname
